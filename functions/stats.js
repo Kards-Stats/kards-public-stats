@@ -5,9 +5,6 @@ const {
     GraphQLScalarType
 } = require('graphql');
 
-const config = require('../localdev-config.json');
-const constants = require('../config/constants');
-
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 
 const { PlayerFunctions } = require('../models/player');
@@ -19,8 +16,8 @@ const waitTime = 10 * 60 * 1000;
 
 const { authenticatedGet, authenticatedPost } = require('../includes/kards-request');
 
-const hostname = 'https://' + config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['hostname'];
-const player_id = config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['player-id'];
+const hostname = 'https://' + process.env.kards_hostname;
+const player_id = process.env.kards_player_id;
 
 function getByPlayerId(id) {
     const deferred = Q.defer();
@@ -31,7 +28,7 @@ function getByPlayerId(id) {
                     player: {
                         id: id,
                         name: '',
-                        tag: ''
+                        tag: -1
                     },
                     stats: []
                 };

@@ -70,9 +70,5 @@ function configureSecurity() {
 }
 
 function getMongooseConfig() {
-	var temp = require('./localdev-config.json');
-	var config = temp[constants.MONGODB][0][constants.SERVICES_CREDENTIALS];
-	if (config.username == '' || config.password == '')
-		return 'mongodb://' + config.cluster_url + '/' + config.database;
-	return 'mongodb+srv://' + config.username + ':' + config.password + '@' + config.cluster_url + '/' + config.database + '?retryWrites=true&w=majority';
+	return 'mongodb+srv://' + process.env.mdb_username + ':' + process.env.mdb_password + '@' + process.env.mdb_cluster_url + '/' + process.env.mdb_database + '?retryWrites=true&w=majority';
 }

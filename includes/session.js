@@ -9,9 +9,6 @@ const Q = require('q');
 const { getKardsSessionEndpoint } = require('./public-endpoints');
 const { KardsApiError } = require('./kards-api-error');
 
-const config = require('../localdev-config.json');
-const constants = require('../config/constants');
-
 var steamTicket = '';
 var steamId = '';
 
@@ -59,7 +56,7 @@ function getSession(tryNum = 0) {
                         "provider_details": {
                             "steam_id": steamId,
                             "ticket": steamTicket,
-                            "appid": config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['steam-app-id']
+                            "appid": process.env.kards_app_id
                         },
                         "client_type":"UE4",
                         "build":"Kards 1.1.4233",
@@ -78,7 +75,7 @@ function getSession(tryNum = 0) {
                         headers: {
                             'Content-Type': 'application/json',
                             'Content-Length': postData.length,
-                            'Drift-Api-Key': config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['drift-api-key'],
+                            'Drift-Api-Key': process.env.kards_drift_api_key,
                         },
                         rejectUnauthorized: false
                     };
@@ -141,7 +138,7 @@ function needsNewSession() {
                 method: 'PUT',
                 headers: {
                     'Authorization': 'jti ' + session.jti,
-                    'Drift-Api-Key': config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['drift-api-key'],
+                    'Drift-Api-Key': process.env.kards_drift_api_key,
                 },
                 rejectUnauthorized: false
             };
@@ -194,11 +191,11 @@ function refreshSteam() {
         });
     });
 
-    logger.trace(config[constants.STEAM][0][constants.SERVICES_CREDENTIALS]['username']);
-    logger.trace(config[constants.STEAM][0][constants.SERVICES_CREDENTIALS]['password']);
+    logger.trace(process.env.steam_username);
+    logger.trace(process.env.steam_password);
     steam.logOn({
-        accountName: config[constants.STEAM][0][constants.SERVICES_CREDENTIALS]['username'],
-        password: config[constants.STEAM][0][constants.SERVICES_CREDENTIALS]['password']
+        accountName: process.env.steam_username,
+        password: process.env.steam_password
     });
 
     steam.on('loggedOn', function(details, parental) {
@@ -211,7 +208,7 @@ function refreshSteam() {
             game_extra_info: 'Kards Virtual'
         });
         */
-        steam.getAuthSessionTicket(config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['steam-app-id'], function(err, ticket) {
+        steam.getAuthSessionTicket(process.env.kards_app_id, function(err, ticket) {
             logger.trace('getAuthSessionTicket');
             if (err) {
                 deferred.reject(err);

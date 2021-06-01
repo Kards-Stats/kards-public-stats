@@ -7,8 +7,6 @@ const Q = require('q');
 
 const { getJti } = require('./session');
 const { KardsApiError } = require('./kards-api-error');
-const config = require('../localdev-config.json');
-const constants = require('../config/constants');
 
 function authenticatedGet(endpoint) {
     logger.trace('authenticatedGet');
@@ -22,7 +20,7 @@ function authenticatedGet(endpoint) {
             method: 'GET',
             headers: {
                 'Authorization': 'jti ' + jti,
-                'Drift-Api-Key': config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['drift-api-key'],
+                'Drift-Api-Key': process.env.kards_drift_api_key,
             },
             rejectUnauthorized: false
         };
@@ -51,7 +49,7 @@ function authenticatedPost(endpoint, data) {
                 'Authorization': 'JTI ' + jti,
                 'Content-Length': JSON.stringify(data).length,
                 'Content-Type': 'application/json',
-                'Drift-Api-Key': config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['drift-api-key'],
+                'Drift-Api-Key': process.env.kards_drift_api_key,
             },
             rejectUnauthorized: false
         };
@@ -72,7 +70,7 @@ function publicGet(endpoint) {
         port: 443,
         method: 'GET',
         headers: {
-            'Drift-Api-Key': config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['drift-api-key'],
+            'Drift-Api-Key': process.env.kards_drift_api_key,
         },
         rejectUnauthorized: false
     };

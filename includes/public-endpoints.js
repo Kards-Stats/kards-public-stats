@@ -7,9 +7,6 @@ const Q = require('q');
 
 const { KardsApiError } = require('./kards-api-error');
 
-const config = require('../localdev-config.json');
-const constants = require('../config/constants');
-
 var endpoints = {};
 
 function refreshPublicEndpoints() {
@@ -19,11 +16,11 @@ function refreshPublicEndpoints() {
         port: 443,
         method: 'GET',
         headers: {
-            'Drift-Api-Key': config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['drift-api-key'],
+            'Drift-Api-Key': process.env.kards_drift_api_key,
         },
         rejectUnauthorized: false
     };
-    https.request('https://' + config[constants.KARDS][0][constants.SERVICES_CREDENTIALS]['hostname'], options, (res) => {
+    https.request('https://' + process.env.kard_hostname, options, (res) => {
         var body = '';
         res.on('data', (d) => {
             body += d;
