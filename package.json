@@ -1,0 +1,40 @@
+{
+  "name": "kards-public-stats",
+  "version": "1.0.0",
+  "description": "Backend for player stats on kards",
+  "homepage": "",
+  "bugs": "",
+  "contributors": [
+    "KlutzyBubbles <LTzilantonis@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "private": true,
+  "scripts": {
+    "start": "node app.js",
+    "debug": "env-cmd node --expose-gc --inspect app.js",
+    "debug-test": "env-cmd node --expose-gc --inspect test.js",
+    "gen-key": "cd ./security && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.pem -config local.cfg -sha256",
+    "test": "nyc -x \"src/**\" -x \"public/**\" -x \"coverage/**\" -x \"*.config.js\" -x \"*/*-test.js\" -x \"*/*-mock.js\" --reporter=html --reporter=text --all mocha \"./{,!(node_modules)/**/}*-test.js\""
+  },
+  "dependencies": {
+    "express": "^4.13.4",
+    "express-graphql": "^0.12.0",
+    "express-session": "^1.17.0",
+    "express-validator": "^6.4.0",
+    "graphql": "^15.5.0",
+    "graphql-tools": "^7.0.5",
+    "helmet": "^3.21.3",
+    "https": "^1.0.0",
+    "log4js": "^5.3.0",
+    "mongoose": "^5.12.3",
+    "q": "^1.5.1",
+    "steam-user": "^4.19.9",
+    "underscore": "^1.12.1"
+  },
+  "devDependencies": {
+    "env-cmd": "^10.1.0"
+  }
+}

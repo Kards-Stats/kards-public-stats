@@ -1,0 +1,15 @@
+{
+	"folders": [{
+		"path": "."
+	}],
+	"settings": {
+		"files.eol": "\n",
+		"files.insertFinalNewline": true,
+		"files.trimTrailingWhitespace": true,
+	},
+	"extensions": {
+		"recommendations": [
+			"dbaeumer.vscode-eslint"
+		]
+	}
+}
