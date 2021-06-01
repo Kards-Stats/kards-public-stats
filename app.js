@@ -1,6 +1,4 @@
 const express = require('express');
-const https = require('https');
-const fs = require('fs');
 
 const helmet = require('helmet');
 
@@ -9,18 +7,9 @@ const logger = log4js.getLogger('app-main-exec');
 const mongoose = require('mongoose');
 const { graphqlHTTP } = require('express-graphql');
 
-const constants = require('./config/constants');
-
 const { executableSchema } = require('./functions/stats');
 
 const app = express();
-
-const httpsOptions = {
-	key: fs.readFileSync('./security/cert.key'),
-	cert: fs.readFileSync('./security/cert.pem')
-};
-
-const server = https.createServer(httpsOptions, app);
 
 const port = process.env.PORT || 4848;
 
@@ -30,6 +19,8 @@ logger.error('DEBUG: ERROR LEVEL');
 logger.info('DEBUG: INFO LEVEL');
 logger.debug('DEBUG: DEBUG LEVEL');
 logger.trace('DEBUG: TRACE LEVEL');
+
+logger.debug(getMongooseConfig());
 
 mongoose.connect(getMongooseConfig(), { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -59,7 +50,7 @@ app.use('/graphql', graphqlHTTP({
 }));
 
 
-server.listen(port, () => {
+app.listen(port, () => {
 	console.log('Listening on https://localhost:' + port);
 });
 

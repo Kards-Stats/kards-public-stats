@@ -20,7 +20,7 @@ function refreshPublicEndpoints() {
         },
         rejectUnauthorized: false
     };
-    https.request('https://' + process.env.kard_hostname, options, (res) => {
+    https.request('https://' + process.env.kards_hostname, options, (res) => {
         var body = '';
         res.on('data', (d) => {
             body += d;
