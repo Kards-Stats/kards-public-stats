@@ -88,7 +88,17 @@ function getSession(tryNum = 0) {
                         res.on('end', () => {
                             try {
                                 var json = JSON.parse(body);
-                                if (KardsApiError.isKardsError(json)) {
+                                if (json.status_code == 401) {
+                                    refreshSteam().then(() => {
+                                        getSession(tryNum + 1).then((session) => {
+                                            deferred.resolve(session);
+                                        }).catch((e) => {
+                                            deferred.reject(e);
+                                        });
+                                    }).catch((e) => {
+                                        deferred.reject(e);
+                                    });
+                                } else if (KardsApiError.isKardsError(json)) {
                                     deferred.reject(new KardsApiError(json));
                                 } else {
                                     deferred.resolve(json);

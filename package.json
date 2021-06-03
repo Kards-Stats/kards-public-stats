@@ -20,6 +20,7 @@
     "test": "nyc -x \"src/**\" -x \"public/**\" -x \"coverage/**\" -x \"*.config.js\" -x \"*/*-test.js\" -x \"*/*-mock.js\" --reporter=html --reporter=text --all mocha \"./{,!(node_modules)/**/}*-test.js\""
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.13.4",
     "express-graphql": "^0.12.0",
     "express-session": "^1.17.0",

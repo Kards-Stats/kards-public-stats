@@ -20,10 +20,15 @@ const hostname = 'https://' + process.env.kards_hostname;
 const player_id = process.env.kards_player_id;
 
 function getByPlayerId(id) {
+    logger.trace('getByPlayerId');
     const deferred = Q.defer();
     PlayerFunctions.getById(id).then((player) => {
+        logger.trace('PF get done');
+        logger.trace(player);
         if (!player) {
             StatsFunctions.getById(id).then((stats) => {
+                logger.trace('SF get done');
+                logger.trace(stats);
                 var value = {
                     player: {
                         id: id,
@@ -66,15 +71,19 @@ function getByPlayerName(name, tag) {
     logger.trace('getByPlayerName');
     const deferred = Q.defer();
     PlayerFunctions.getByName(name, tag).then((player) => {
+        logger.trace('PF get done');
         logger.trace(player);
         if (!player) {
             authenticatedPost(hostname + '/players/' + player_id + '/friends', {
                 friend_tag: tag,
                 friend_name: name
             }).then((friend_result) => {
+                logger.trace('FR get done');
+                logger.trace(friend_result);
                 PlayerFunctions.newPlayer(name, tag, friend_result.friend_id);
                 logger.trace(friend_result);
                 StatsFunctions.getById(friend_result.friend_id).then((stats) => {
+                    logger.trace('SF get done');
                     logger.trace(stats);
                     var value = {
                         player: {
@@ -161,6 +170,7 @@ function updateByPlayerId(id) {
 }
 
 function updateByPlayerName(name, tag) {
+    logger.trace('updateByPlayerName');
     const deferred = Q.defer();
     PlayerFunctions.getByName(name, tag).then((player) => {
         if (!player) {
