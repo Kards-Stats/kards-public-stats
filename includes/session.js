@@ -9,6 +9,13 @@ const Q = require('q');
 const { getKardsSessionEndpoint } = require('./public-endpoints');
 const { KardsApiError } = require('./kards-api-error');
 
+const readline = require('readline');
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
 var steamTicket = '';
 var steamId = '';
 
