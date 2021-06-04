@@ -12,6 +12,7 @@ const { executableSchema } = require('./functions/stats');
 const cors = require('cors');
 
 const app = express();
+const timeout = require('connect-timeout');
 
 const port = process.env.PORT || 4848;
 
@@ -45,6 +46,8 @@ app.use(function (req, res, next) {
     next();
 });
 */
+
+app.use(timeout('5s'));
 
 app.use('/', cors(), graphqlHTTP({
 	schema: executableSchema
