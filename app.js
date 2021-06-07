@@ -28,31 +28,12 @@ logger.debug(getMongooseConfig());
 mongoose.connect(getMongooseConfig(), { useNewUrlParser: true, useUnifiedTopology: true });
 
 configureSecurity();
-/*
-app.get('/test', (request, response) => {
-	response.json({ test: true });
-});
-
-app.use(express.static('public', { index: null }));
-*/
-/*
-app.use(function (req, res, next) {
-	logger.trace(req);
-    let originalSend = res.send;
-    res.send = function (data) {
-        logger.trace(data);
-        originalSend.apply(res, Array.from(arguments));
-    }
-    next();
-});
-*/
 
 app.use(timeout('5s'));
 
 app.use('/', cors(), graphqlHTTP({
 	schema: executableSchema
 }));
-
 
 app.listen(port, () => {
 	console.log('Listening on https://localhost:' + port);
