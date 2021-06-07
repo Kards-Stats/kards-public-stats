@@ -15,9 +15,6 @@
   "scripts": {
     "start": "node app.js",
     "debug": "env-cmd node --expose-gc --inspect app.js",
-    "debug-test": "env-cmd node --expose-gc --inspect test.js",
-    "gen-key": "cd ./security && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.pem -config local.cfg -sha256",
-    "test": "nyc -x \"src/**\" -x \"public/**\" -x \"coverage/**\" -x \"*.config.js\" -x \"*/*-test.js\" -x \"*/*-mock.js\" --reporter=html --reporter=text --all mocha \"./{,!(node_modules)/**/}*-test.js\""
   },
   "dependencies": {
     "connect-timeout": "^1.9.0",
