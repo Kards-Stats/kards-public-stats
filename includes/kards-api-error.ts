@@ -1,10 +1,24 @@
-const log4js = require('log4js');
-const logger = log4js.getLogger('kards-api-error');
-logger.level = process.env.log_level || 'error';
+import winston from 'winston';
+import { getCurrentLogger } from './logger';
 
-class KardsApiError extends Error {
+const logger: winston.Logger = getCurrentLogger('includes-kards-api-error');
 
-    constructor(object) {
+export interface KardsApiErrorJson {
+    status_code: number,
+    message: string,
+    error: {
+        code: string,
+        description: string
+    }
+}
+
+export default class KardsApiError extends Error {
+
+    status_code: number;
+    http_message: string;
+    code: string;
+
+    constructor(object: KardsApiErrorJson) {
         super(object.error.description);
         this.name = this.constructor.name;
         this.status_code = object.status_code;
@@ -13,12 +27,12 @@ class KardsApiError extends Error {
         Error.captureStackTrace(this, this.constructor);
     }
 
-    static isKardsError(object) {
+    static isKardsError(object: any): boolean {
         /*
         {
             "error": {
                 "code": "user_error",
-                "description": "Invalid JTI. Token FreydDogypoo3hsCckHN3 does not exist."
+                "description": "Invalid JTI. Token FfeydDogkuhy3hsCckHN3 does not exist."
             },
             "message": "Unauthorized",
             "status_code": 401
@@ -37,7 +51,3 @@ class KardsApiError extends Error {
         return false;
     }
 }
-
-module.exports = {
-    KardsApiError: KardsApiError
-};

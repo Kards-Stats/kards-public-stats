@@ -14,7 +14,7 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "debug": "env-cmd node --expose-gc --inspect app.js",
+    "debug": "env-cmd ts-node app.js"
   },
   "dependencies": {
     "connect-timeout": "^1.9.0",
@@ -23,18 +23,32 @@
     "express-graphql": "^0.12.0",
     "express-session": "^1.17.0",
     "express-validator": "^6.4.0",
+    "follow-redirects": "^1.14.1",
     "graphql": "^15.5.0",
     "graphql-tools": "^7.0.5",
     "helmet": "^3.21.3",
     "https": "^1.0.0",
-    "log4js": "^5.3.0",
+    "jsonwebtoken": "^8.5.1",
+    "keyv": "^4.0.3",
     "mongoose": "^5.12.3",
     "q": "^1.5.1",
     "readline": "^1.3.0",
     "steam-user": "^4.19.9",
-    "underscore": "^1.12.1"
+    "toad-scheduler": "^1.5.0",
+    "triple-beam": "^1.3.0",
+    "typescript": "^4.3.5",
+    "underscore": "^1.13.1",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5"
   },
   "devDependencies": {
-    "env-cmd": "^10.1.0"
+    "@apollo/rover": "^0.1.8",
+    "@types/follow-redirects": "^1.13.1",
+    "@types/keyv": "^3.1.2",
+    "@types/q": "^1.5.5",
+    "@types/triple-beam": "^1.3.2",
+    "@types/underscore": "^1.11.3",
+    "env-cmd": "^10.1.0",
+    "ts-node": "^10.1.0"
   }
 }

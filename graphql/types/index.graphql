@@ -1,0 +1,22 @@
+type Query {
+    statsById (
+        id: Int
+    ): StatsResult!
+    statsByName (
+        name: String
+        tag: Int
+    ): StatsResult!
+    verifyPlayer (
+        jti: String
+    ): VerifyResult!
+}
+
+type Mutation {
+    statsById (
+        id: Int
+    ): UpdateResult!
+    statsByName (
+        name: String
+        tag: Int
+    ): UpdateResult!
+}

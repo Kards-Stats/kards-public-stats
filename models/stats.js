@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 const Q = require('q');
-const log4js = require('log4js');
-const logger = log4js.getLogger('user-model');
-logger.level = process.env.log_level || 'error';
+const { getCurrentLogger } = require('../includes/logger');
+const logger = getCurrentLogger('user-model');
 
 const Schema = mongoose.Schema;
 

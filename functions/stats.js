@@ -1,6 +1,6 @@
-const log4js = require('log4js');
-const logger = log4js.getLogger('kards-requests');
-logger.level = process.env.log_level || 'error';
+const { getCurrentLogger } = require('../includes/logger');
+const logger = getCurrentLogger('functions-stats');
+const jwt = require('jsonwebtoken');
 const {
     GraphQLScalarType
 } = require('graphql');
@@ -9,26 +9,27 @@ const { makeExecutableSchema } = require('@graphql-tools/schema');
 
 const { PlayerFunctions } = require('../models/player');
 const { StatsFunctions } = require('../models/stats');
-
+const { Session } = require('../includes/session');
 const Q = require('q');
 
 const waitTime = 10 * 60 * 1000;
 
-const { authenticatedGet, authenticatedPost } = require('../includes/kards-request');
+const session = new Session('*');
+
+const { authenticatedRequest, authenticatedPost } = require('../includes/kards-request');
 
 const hostname = 'https://' + process.env.kards_hostname;
-const player_id = process.env.kards_player_id;
 
 function getByPlayerId(id) {
-    logger.trace('getByPlayerId');
+    logger.silly('getByPlayerId');
     const deferred = Q.defer();
     PlayerFunctions.getById(id).then((player) => {
-        logger.trace('PF get done');
-        logger.trace(player);
+        logger.silly('PF get done');
+        logger.silly(player);
         if (!player) {
             StatsFunctions.getById(id).then((stats) => {
-                logger.trace('SF get done');
-                logger.trace(stats);
+                logger.silly('SF get done');
+                logger.silly(stats);
                 var value = {
                     player: {
                         id: id,
@@ -43,7 +44,7 @@ function getByPlayerId(id) {
                 deferred.resolve(value);
             }).catch((e) => {
                 logger.error(e);
-                deferred.resolve({ error: 'Unknown' });
+                deferred.resolve({ code: 500, message: 'Unknown' });
             });
         } else {
             StatsFunctions.getById(player.id).then((stats) => {
@@ -57,64 +58,68 @@ function getByPlayerId(id) {
                 deferred.resolve(value);
             }).catch((e) => {
                 logger.error(e);
-                deferred.resolve({ error: 'Unknown' });
+                deferred.resolve({ code: 500, message: 'Unknown' });
             });
         }
     }).catch((e) => {
         logger.error(e);
-        deferred.resolve({ error: 'Unknown' });
+        deferred.resolve({ code: 500, message: 'Unknown' });
     });
     return deferred.promise;
 }
 
 function getByPlayerName(name, tag) {
-    logger.trace('getByPlayerName');
+    logger.silly('getByPlayerName');
     const deferred = Q.defer();
     PlayerFunctions.getByName(name, tag).then((player) => {
-        logger.trace('PF get done');
-        logger.trace(player);
+        logger.silly('PF get done');
+        logger.silly(player);
         if (!player) {
-            authenticatedPost(hostname + '/players/' + player_id + '/friends', {
-                friend_tag: tag,
-                friend_name: name
-            }).then((friend_result) => {
-                logger.trace('FR get done');
-                logger.trace(friend_result);
-                PlayerFunctions.newPlayer(name, tag, friend_result.friend_id);
-                logger.trace(friend_result);
-                StatsFunctions.getById(friend_result.friend_id).then((stats) => {
-                    logger.trace('SF get done');
-                    logger.trace(stats);
-                    var value = {
-                        player: {
-                            id: friend_result.friend_id,
-                            name: name,
-                            tag: tag
-                        },
-                        stats: []
-                    };
-                    if (stats) {
-                        value.stats = stats.stats;
-                    }
-                    logger.trace(value);
-                    deferred.resolve(value);
+            session.getPlayerID().then((player_id) => {
+                authenticatedPost(hostname + '/players/' + player_id + '/friends', JSON.stringify({
+                    friend_tag: tag,
+                    friend_name: name
+                }), session).then((friend_result) => {
+                    logger.silly('FR get done');
+                    logger.silly(friend_result);
+                    PlayerFunctions.newPlayer(name, tag, friend_result.friend_id);
+                    logger.silly(friend_result);
+                    StatsFunctions.getById(friend_result.friend_id).then((stats) => {
+                        logger.silly('SF get done');
+                        logger.silly(stats);
+                        var value = {
+                            player: {
+                                id: friend_result.friend_id,
+                                name: name,
+                                tag: tag
+                            },
+                            stats: []
+                        };
+                        if (stats) {
+                            value.stats = stats.stats;
+                        }
+                        logger.silly(value);
+                        return deferred.resolve(value);
+                    }).catch((e) => {
+                        logger.error(e);
+                        return deferred.resolve({ code: 500, message: 'Unknown' });
+                    });
                 }).catch((e) => {
                     logger.error(e);
-                    deferred.resolve({ error: 'Unknown' });
+                    if (e.status_code == 404) {
+                        return deferred.resolve({ code: 404, message: 'Player not found' });
+                    } else if (e.status_code == 401) {
+                        return deferred.resolve({ code: 401, message: 'Backend temporarily unavailable' });
+                    }
+                    return deferred.resolve({ code: 500, message: 'Unknown' });
                 });
             }).catch((e) => {
                 logger.error(e);
-                if (e.status_code == 404) {
-                    deferred.resolve({ error: 'Player not found' });
-                } else if (e.status_code == 401) {
-                    deferred.resolve({ error: 'Backend temporarily unavailable' });
-                } else {
-                    deferred.resolve({ error: 'Unknown' });
-                }
+                return deferred.resolve({ code: 500, message: e.error });
             });
         } else {
             StatsFunctions.getById(player.id).then((stats) => {
-                logger.trace(stats);
+                logger.silly(stats);
                 var value = {
                     player: player,
                     stats: []
@@ -122,22 +127,22 @@ function getByPlayerName(name, tag) {
                 if (stats) {
                     value.stats = stats.stats;
                 }
-                deferred.resolve(value);
+                return deferred.resolve(value);
             }).catch((e) => {
                 logger.error(e);
-                deferred.resolve({ error: 'Unknown' });
+                return deferred.resolve({ code: 500, message: 'Unknown' });
             });
         }
     }).catch((e) => {
         logger.error(e);
-        deferred.resolve({ error: 'Unknown' });
+        return deferred.resolve({ code: 500, message: 'Unknown' });
     });
     return deferred.promise;
 }
 
 function internalUpdateStats(player_id) {
-    logger.trace('internalUpdateStats');
-    authenticatedGet(hostname + '/playerstats/' + player_id).then((player_stats) => {
+    logger.silly('internalUpdateStats');
+    authenticatedRequest('GET', hostname + '/playerstats/' + player_id, session).then((player_stats) => {
         StatsFunctions.putStats(player_id, player_stats).catch((e) => {
             logger.error(e);
         });
@@ -147,13 +152,13 @@ function internalUpdateStats(player_id) {
 }
 
 function updateByPlayerId(id) {
-    logger.trace('updateByPlayerId');
+    logger.silly('updateByPlayerId');
     const deferred = Q.defer();
     StatsFunctions.getById(id).then((stats) => {
         if (stats) {
-            logger.trace(stats.updated);
+            logger.silly(stats.updated);
             if ((new Date()) - stats.updated < waitTime) {
-                deferred.resolve({ error: 'Wait 10 minnutes before updating' });
+                deferred.resolve({ code: 600, message: 'Wait 10 minnutes before updating' });
             } else {
                 internalUpdateStats(id);
                 deferred.resolve({ queued: true });
@@ -164,48 +169,75 @@ function updateByPlayerId(id) {
         }
     }).catch((e) => {
         logger.error(e);
-        deferred.resolve({ error: 'Unknown' });
+        deferred.resolve({ code: 500, message: 'Unknown' });
     });
     return deferred.promise;
 }
 
 function updateByPlayerName(name, tag) {
-    logger.trace('updateByPlayerName');
+    logger.silly('updateByPlayerName');
     const deferred = Q.defer();
     PlayerFunctions.getByName(name, tag).then((player) => {
         if (!player) {
-            authenticatedPost(hostname + '/players/' + player_id + '/friends', {
-                friend_tag: tag,
-                friend_name: name
-            }).then((friend_result) => {
-                PlayerFunctions.newPlayer(name, tag, friend_result.friend_id);
-                updateByPlayerId(friend_result.friend_id).then((result) => {
-                    deferred.resolve(result);
+            session.getPlayerID().then((player_id) => {
+                authenticatedPost(hostname + '/players/' + player_id + '/friends', JSON.stringify({
+                    friend_tag: tag,
+                    friend_name: name
+                }), session).then((friend_result) => {
+                    PlayerFunctions.newPlayer(name, tag, friend_result.friend_id);
+                    updateByPlayerId(friend_result.friend_id).then((result) => {
+                        return deferred.resolve(result);
+                    }).catch((e) => {
+                        logger.error(e);
+                        return deferred.resolve({ code: 500, message: e.error });
+                    });
                 }).catch((e) => {
                     logger.error(e);
-                    deferred.resolve({ error: e.error });
+                    if (e.status_code == 404) {
+                        return deferred.resolve({ code: 404, message: 'Player not found' });
+                    } else if (e.status_code == 401) {
+                        return deferred.resolve({ code: 401, message: 'Backend temporarily unavailable' });
+                    }
+                    return deferred.resolve({ code: 500, message: 'Unknown' });
                 });
             }).catch((e) => {
                 logger.error(e);
-                if (e.status_code == 404) {
-                    deferred.resolve({ error: 'Player not found' });
-                } else if (e.status_code == 401) {
-                    deferred.resolve({ error: 'Backend temporarily unavailable' });
-                } else {
-                    deferred.resolve({ error: 'Unknown' });
-                }
+                return deferred.resolve({ code: 500, message: e.error });
             });
         } else {
             updateByPlayerId(player.id).then((result) => {
-                deferred.resolve(result);
+                return deferred.resolve(result);
             }).catch((e) => {
                 logger.error(e);
-                deferred.resolve({ error: e.error });
+                return deferred.resolve({ code: 500, message: e.error });
             });
         }
     }).catch((e) => {
         logger.error(e);
-        deferred.resolve({ error: 'Unknown' });
+        deferred.resolve({ code: 500, message: 'Unknown' });
+    });
+    return deferred.promise;
+}
+
+function verifyPlayer(jti) {
+    logger.silly('verifyPlayer');
+    const deferred = Q.defer();
+    authenticatedRequest('GET', hostname, session).then((result) => {
+        logger.silly('gotResult');
+        deferred.resolve(result);
+        const token = jwt.sign({
+            player_id: result.current_user.player_id,
+            user_name: result.current_user.user_name
+        }, process.env.SHARED_SECRET_KEY, {
+            expiresIn: '1h',
+            algorithm: 'HS256'
+        });
+        deferred.resolve({
+            token: token
+        });
+    }).catch((e) => {
+        logger.error(e);
+        deferred.resolve({ code: 500, message: 'Not Authenticated' });
     });
     return deferred.promise;
 }
@@ -233,7 +265,8 @@ type Stat {
 }
 
 type Error {
-    error: String
+    message: String
+    code: String
 }
 
 union StatsResult = Stats | Error
@@ -246,13 +279,21 @@ type Query {
         name: String
         tag: Int
     ): StatsResult
+    verifyPlayer (
+        jti: String
+    ): VerifyResult
 }
 
 type QueueResult {
     queued: Boolean
 }
 
+type VerifyToken {
+    token: String
+}
+
 union UpdateResult = QueueResult | Error
+union VerifyResult = VerifyToken | Error
 
 type Mutation {
     statsById (
@@ -273,7 +314,7 @@ schema {
 const resolvers = {
     StatsResult: {
         __resolveType(obj, context, info) {
-            if (obj.error) {
+            if (obj.message) {
                 return 'Error';
             }
             if (obj.player) {
@@ -284,9 +325,9 @@ const resolvers = {
     },
     UpdateResult: {
         __resolveType(obj, context, info) {
-            logger.trace('Update Resolve');
-            logger.trace(obj);
-            if (obj.error) {
+            logger.silly('Update Resolve');
+            logger.silly(obj);
+            if (obj.message) {
                 return 'Error';
             }
             if (obj.queued) {
@@ -301,6 +342,9 @@ const resolvers = {
         },
         statsByName(_, { name, tag }) {
             return getByPlayerName(name, tag);
+        },
+        verifyPlayer(_, { jti }) {
+            return verifyPlayer(jti);
         }
     },
     Mutation: {

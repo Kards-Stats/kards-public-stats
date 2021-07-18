@@ -1,0 +1,18 @@
+scalar Date
+
+type Error {
+    code: Int!
+    error: String!
+}
+
+type SimplePagination {
+    total: Int!
+    page_size: Int!
+    offset: Int!
+}
+
+type Player {
+    id: String,
+    name: String,
+    tag: Int
+}

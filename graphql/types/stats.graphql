@@ -1,0 +1,20 @@
+type Stats {
+    player: Player
+    stats: [Stat]
+}
+
+type Stat {
+    stat_name: String
+    modified: Date
+    stat_int: Int
+    stat_string: String
+}
+
+type QueueResult {
+    queued: Boolean
+}
+
+union StatsResult = Stats | Error
+union UpdateResult = QueueResult | Error 
+
+
