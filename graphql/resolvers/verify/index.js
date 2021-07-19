@@ -1,3 +1,3 @@
 module.exports = {
-	verifyQueries: require('./queries')
-};
+  verifyQueries: require('./queries')
+}

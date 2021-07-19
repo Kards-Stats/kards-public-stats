@@ -1,4 +1,4 @@
 module.exports = {
-	statsMutations: require('./mutations'),
-	statsQueries: require('./queries')
-};
+  statsMutations: require('./mutations'),
+  statsQueries: require('./queries')
+}
