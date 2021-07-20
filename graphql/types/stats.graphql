@@ -1,11 +1,11 @@
 type Stats {
-    player: Player
+    player: Player!
     stats: [Stat]
 }
 
 type Stat {
-    stat_name: String
-    modified: Date
+    stat_name: String!
+    modified: Date!
     stat_int: Int
     stat_string: String
 }

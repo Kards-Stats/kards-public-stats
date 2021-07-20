@@ -12,7 +12,7 @@ type SimplePagination {
 }
 
 type Player {
-    id: String,
-    name: String,
-    tag: Int
+    id: Int!
+    name: String!
+    tag: Int!
 }

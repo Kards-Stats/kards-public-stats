@@ -1,22 +1,22 @@
 type Query {
     statsById (
-        id: Int
+        id: Int!
     ): StatsResult!
     statsByName (
-        name: String
-        tag: Int
+        name: String!
+        tag: Int!
     ): StatsResult!
     verifyPlayer (
-        jti: String
+        jti: String!
     ): VerifyResult!
 }
 
 type Mutation {
     statsById (
-        id: Int
+        id: Int!
     ): UpdateResult!
     statsByName (
-        name: String
-        tag: Int
+        name: String!
+        tag: Int!
     ): UpdateResult!
 }
