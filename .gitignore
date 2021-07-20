@@ -52,3 +52,5 @@ localdev-config.json
 
 .env
 .env-cmdrc
+
+build/
