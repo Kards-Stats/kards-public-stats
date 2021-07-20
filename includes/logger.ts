@@ -6,27 +6,30 @@ import { SPLAT } from 'triple-beam'
 
 const SPLAT_STRING: string = SPLAT as any
 
-const loggers = new Map()
+var loggers = new Map()
 
-function formatObject (param: Object | string): string {
+function formatObject (param: any): string {
   if (_.isObject(param)) {
+    if (_.has(param, 'message')) {
+      return param.message
+    }
     return JSON.stringify(param)
   }
-  return param
+  if (param === undefined) {
+    return 'undefined'
+  }
+  if (param === null) {
+    return 'null'
+  }
+  return param.toString()
 }
 
 // Ignore log messages if they have { private: true }
 const all = logger.format((info: any) => {
-  if (info instanceof Error) {
-    return Object.assign({
-      message: info.message,
-      stack: info.stack
-    }, info)
-  }
-  const splat = info[SPLAT_STRING] ?? []
+  const splat: any[] = info[SPLAT_STRING] ?? []
   const message = formatObject(info.message)
   const rest: string = splat.map(formatObject).join(' ')
-  info.message = `${message} ${rest}`
+  info.message = `${message} ${rest}`.trim()
   return info
 })
 
@@ -35,22 +38,43 @@ interface CustomTransformableInfo extends logger.Logform.TransformableInfo {
   label: string
 }
 
-function getConfig (label: string): logger.LoggerOptions {
+const levels = [
+  'error',
+  'warn',
+  'info',
+  'debug',
+  'silly'
+]
+
+export function getConfig (label: string): logger.LoggerOptions {
+  var consoleLevel = process.env.console_level ?? process.env.log_level ?? ''
+  /* istanbul ignore else */
+  if (!levels.includes(consoleLevel)) {
+    consoleLevel = process.env.log_level ?? ''
+    /* istanbul ignore else */
+    if (!levels.includes(consoleLevel)) {
+      consoleLevel = 'error'
+    }
+  }
+  var logLevel = process.env.log_level ?? ''
+  /* istanbul ignore else */
+  if (!levels.includes(logLevel)) {
+    logLevel = 'info'
+  }
+  var levelsObj: logger.config.AbstractConfigSetLevels = {}
+  for (var i = 0; i < levels.length; i++) {
+    levelsObj[levels[i]] = i + 1
+  }
+  /* istanbul ignore next */
   return {
-    levels: {
-      error: 1,
-      warn: 2,
-      info: 3,
-      debug: 4,
-      silly: 5
-    },
+    levels: levelsObj,
     format: logger.format.combine(
       all(),
       logger.format.json()
     ),
     transports: [
       new logger.transports.Console({
-        level: process.env.console_level ?? process.env.log_level ?? 'error',
+        level: consoleLevel,
         format: logger.format.combine(
           logger.format.colorize(),
           logger.format.timestamp({ format: 'DD-MM-YYYY HH:mm:ss' }),
@@ -63,7 +87,7 @@ function getConfig (label: string): logger.LoggerOptions {
         )
       }),
       new logger.transports.DailyRotateFile({
-        level: process.env.log_level ?? 'info',
+        level: logLevel,
         filename: [process.cwd(), 'logs/console.rotating.log'].join('/'),
         datePattern: 'YYYY-MM-DD',
         maxSize: '20m',
@@ -77,16 +101,7 @@ function getConfig (label: string): logger.LoggerOptions {
             return `[${msgTyped.timestamp}][${msgTyped.label}][${msgTyped.level}]: ${msgTyped.message}`
           })
         )
-      })/*,
-            new transports.File({
-                level: process.env.log_level || 'info',
-                format: format.combine(
-                    format.timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
-                    format.label({ label: label }),
-                    format.json()
-                ),
-                filename: [process.cwd(), `logs/console.all.log`].join('/'),
-            }), */
+      })
     ]
   }
 }
@@ -102,10 +117,21 @@ export function getLogger (fork: string, name: string): logger.Logger | null {
 }
 
 export function getCurrentLogger (name: string): logger.Logger {
-  let fork = process.env.name
-  if (fork === undefined && !isMaster) { fork = `Fork ${process.env.FORK_ID ?? ''}` }
-  if (fork === undefined) { fork = 'master' }
-  const logger = getLogger(fork, name)
+  const logger = getLogger(getForkName(isMaster), name)
   if (logger === null) { throw new Error('No Logger available') }
   return logger
+}
+
+export function getForkName (isMaster: boolean): string {
+  /* istanbul ignore else */
+  if (process.env.name === undefined) {
+    /* istanbul ignore else */
+    if (isMaster === null || isMaster) {
+      return 'master'
+    }
+    /* istanbul ignore next */
+    return `Fork ${process.env.FORK_ID ?? ''}`.trim()
+  }
+  /* istanbul ignore next */
+  return process.env.name
 }

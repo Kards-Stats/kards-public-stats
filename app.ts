@@ -27,14 +27,19 @@ mongoose.connect(getMongooseConfig(), { useNewUrlParser: true, useUnifiedTopolog
   configureSecurity()
   app.use(timeout('10s'))
   configureDev()
-  app.use('/', async function (request, response) {
+  app.use('/', function (request, response, next): void {
     // logger.info(response);
     response.once('finish', function () {
       // logger.info(response);
     })
-    return graphqlHTTP({
+    graphqlHTTP({
       schema: schema
-    })(request, response)
+    })(request, response).then(() => {
+      next()
+    }).catch((e) => {
+      logger.error(e)
+      response.json({ code: 500, error: 'GraphQL failed' })
+    })
   })
 
   app.listen(port, () => {
