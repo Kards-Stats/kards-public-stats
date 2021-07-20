@@ -1,12 +1,16 @@
-const { statsMutations, statsQueries } = require('./stats/index')
-const { verifyQueries } = require('./verify/index')
-const _ = require('underscore')
-const { GraphQLScalarType, Kind } = require('graphql')
-// const logger = require('../../includes/logger').getCurrentLogger('graphql-r-index');
+import stats from './stats/index'
+import verify from './verify/index'
+import { getCurrentLogger } from '../../includes/logger'
+import winston from 'winston'
+import { GraphQLScalarType, Kind } from 'graphql'
+import _ from 'underscore'
 
-module.exports = {
+const logger: winston.Logger = getCurrentLogger('graphql-r-index')
+
+export default {
   StatsResult: {
-    __resolveType: obj => {
+    __resolveType: (obj: any) => {
+      logger.silly('Resolve StatsResult')
       if (!_.isUndefined(obj.error)) {
         return 'Error'
       }
@@ -17,7 +21,8 @@ module.exports = {
     }
   },
   UpdateResult: {
-    __resolveType: obj => {
+    __resolveType: (obj: any) => {
+      logger.silly('Resolve StatsResult')
       if (!_.isUndefined(obj.error)) {
         return 'Error'
       }
@@ -27,12 +32,24 @@ module.exports = {
       return null
     }
   },
+  VerifyResult: {
+    __resolveType: (obj: any) => {
+      logger.silly('Resolve StatsResult')
+      if (!_.isUndefined(obj.error)) {
+        return 'Error'
+      }
+      if (_.isString(obj.token)) {
+        return 'VerifyResult'
+      }
+      return null
+    }
+  },
   Query: {
-    ...statsQueries,
-    ...verifyQueries
+    ...stats.statsQueries,
+    ...verify.verifyQueries
   },
   Mutation: {
-    ...statsMutations
+    ...stats.statsMutations
   },
   Date: new GraphQLScalarType({
     name: 'Date',

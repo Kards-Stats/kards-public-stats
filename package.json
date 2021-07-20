@@ -15,8 +15,9 @@
   "scripts": {
     "start": "node build/app.js",
     "build": "tsc",
-    "start:dev": "env-cmd -e dev ts-node app.js",
-    "publish:dev": "env-cmd -e dev -x --use-shell \"rover graph introspect http://localhost:\\$PORT | rover subgraph publish \\$APOLLO_SDL_NAME --name kards-public-stats --routing-url http://localhost:\\$PORT --convert --schema -\""
+    "start:dev": "env-cmd -e dev ts-node app.ts",
+    "publish:dev": "env-cmd -e dev -x --use-shell \"rover graph introspect http://localhost:\\$PORT | rover subgraph publish \\$APOLLO_SDL_NAME --name kards-public-stats --routing-url http://localhost:\\$PORT --convert --schema -\"",
+    "generate": "graphql-codegen --config ./graphql-codegen.yml"
   },
   "dependencies": {
     "connect-timeout": "^1.9.0",
@@ -28,11 +29,12 @@
     "follow-redirects": "^1.14.1",
     "graphql": "^15.5.0",
     "graphql-tools": "^7.0.5",
-    "helmet": "^3.21.3",
+    "helmet": "^4.6.0",
     "https": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
     "keyv": "^4.0.3",
     "mongoose": "^5.12.3",
+    "nocache": "^3.0.1",
     "q": "^1.5.1",
     "readline": "^1.3.0",
     "steam-user": "^4.19.9",
@@ -46,8 +48,15 @@
   },
   "devDependencies": {
     "@apollo/rover": "^0.1.8",
+    "@graphql-codegen/cli": "^1.21.7",
+    "@graphql-codegen/typescript": "^1.23.0",
+    "@graphql-codegen/typescript-apollo-client-helpers": "^1.1.10",
+    "@graphql-codegen/typescript-mongodb": "^1.19.5",
+    "@types/connect-timeout": "0.0.35",
+    "@types/cors": "^2.8.12",
     "@types/follow-redirects": "^1.13.1",
     "@types/keyv": "^3.1.2",
+    "@types/mongoose": "^5.11.97",
     "@types/q": "^1.5.5",
     "@types/triple-beam": "^1.3.2",
     "@types/underscore": "^1.11.3",

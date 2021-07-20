@@ -2,11 +2,11 @@ import { getCurrentLogger } from './logger'
 import Q from 'q'
 import KardsApiError from './kards-api-error'
 import { getKardsSessionEndpoint } from './public-endpoints'
-import { Session as SessionType, SteamUser as SteamUserType } from './types'
+import { Session as SessionType } from './types'
 import winston from 'winston'
 import crypto from 'crypto'
 import { publicPost, getPath, kardsRequest } from './kards-request'
-import { SteamUserFunctions } from '../models/steam-user'
+import { getOldest, getUser, setBanned, addKardsLogin, addSteamLogin, SteamUserDocument } from '../models/steam-user'
 import { ToadScheduler, SimpleIntervalJob, AsyncTask } from 'toad-scheduler'
 import _ from 'underscore'
 import SteamUser = require('steam-user')
@@ -125,13 +125,13 @@ export class Session {
     }
     if (this.needsNewSession()) {
       logger.silly('new session needed')
-      var promise: Q.Promise<SteamUserType> | undefined
+      var promise: Promise<SteamUserDocument | null>
       if (username === 'oldest') {
-        promise = SteamUserFunctions.getOldest(this.type)
+        promise = getOldest(this.type)
       } else {
-        promise = SteamUserFunctions.getUser(username)
+        promise = getUser(username)
       }
-      promise.then((steamUser: SteamUserType) => {
+      promise.then((steamUser: SteamUserDocument | null) => {
         if (steamUser === null) { return deferred.reject(new Error('No more steam accounts to use')) }
         if (steamUser.ticket === undefined || steamUser.steam_id === undefined) {
           logger.silly('steam values empty')
@@ -166,7 +166,7 @@ export class Session {
               password: `steam:${steamUser.steam_id ?? ''}`
             })
             publicPost(getPath(endpoint), postData).then((result) => {
-              SteamUserFunctions.addKardsLogin(steamUser.username).then(() => {
+              addKardsLogin(steamUser.username).then(() => {
                 if (_.isObject(result)) {
                   this.session = result as SessionType
                   this.startHeartbeat()
@@ -185,7 +185,7 @@ export class Session {
                   banned = true
                 }
                 // Possible steam auth timeout
-                SteamUserFunctions.setBanned(steamUser.username, banned).then(() => {
+                setBanned(steamUser.username, banned).then(() => {
                   this.getSession(tryNum + 1).then((session) => {
                     return deferred.resolve(session)
                   }).catch((e) => {
@@ -243,7 +243,10 @@ export class Session {
     logger.silly('refreshSteam')
     const deferred = Q.defer()
 
-    SteamUserFunctions.getUser(username).then((steamUser: SteamUserType) => {
+    getUser(username).then((steamUser: SteamUserDocument | null) => {
+      if (steamUser == null) {
+        return deferred.reject(new Error('No steam user found'))
+      }
       const timeSinceLogin = (new Date()).getTime() - steamUser.last_steam_login.getTime()
       if (timeSinceLogin <= tenMinutes) {
         // Login less than 10 minutes ago, dont refresh to avoid limit bans
@@ -277,7 +280,7 @@ export class Session {
         steam.getAuthSessionTicket(process.env.kards_app_id, (err: any, ticket: any) => {
           logger.silly('getAuthSessionTicket')
           if (err !== undefined && err !== null) { return deferred.reject(err) }
-          SteamUserFunctions.addSteamLogin(
+          addSteamLogin(
             steamUser.username,
             details.client_supplied_steamid,
             ticket.toString('hex'))
