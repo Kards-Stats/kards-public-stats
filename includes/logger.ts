@@ -126,7 +126,7 @@ export function getForkName (isMaster: boolean): string {
   /* istanbul ignore else */
   if (process.env.name === undefined) {
     /* istanbul ignore else */
-    if (isMaster === null || isMaster) {
+    if (isMaster === undefined || isMaster === null || isMaster) {
       return 'master'
     }
     /* istanbul ignore next */
