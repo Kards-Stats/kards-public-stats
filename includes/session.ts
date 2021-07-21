@@ -49,44 +49,44 @@ export class Session {
     this.stopHeartbeat()
     if (this.session === undefined) { return false }
     this.heartbeatTask = new AsyncTask(
-            `Heartbeat for ${this.session.player_id}`,
-            async (): Promise<void> => {
-              const deferred = Q.defer()
+      `Heartbeat for ${this.session.player_id}`,
+      async (): Promise<void> => {
+        const deferred = Q.defer()
+        if (this.session !== undefined) {
+          kardsRequest('PUT', {
+            'Content-Length': '0',
+            Authorization: 'JWT ' + this.session.jwt,
+            'Drift-Api-Key': process.env.kards_drift_api_key
+          }, `/players/${this.session.player_id}/heartbeat`).then((result) => {
+            if (_.isObject(result) && Object.hasOwnProperty.call(result, 'last_heartbeat')) {
               if (this.session !== undefined) {
-                kardsRequest('PUT', {
-                  'Content-Length': '0',
-                  Authorization: 'JWT ' + this.session.jwt,
-                  'Drift-Api-Key': process.env.kards_drift_api_key
-                }, `/players/${this.session.player_id}/heartbeat`).then((result) => {
-                  if (_.isObject(result) && Object.hasOwnProperty.call(result, 'last_heartbeat')) {
-                    if (this.session !== undefined) {
-                      this.session.last_heartbeat = result.last_heartbeat
-                      return deferred.resolve()
-                    } else {
-                      logger.error('No session after result')
-                      this.scheduler.stop()
-                      return deferred.reject('No session after result')
-                    }
-                  } else {
-                    logger.error('No heartbeat result')
-                    this.scheduler.stop()
-                    return deferred.reject('No heartbeat result')
-                  }
-                }).catch((e) => {
-                  logger.error(e)
-                  if (e.status_code === 401) { this.session = undefined }
-                  this.scheduler.stop()
-                  return deferred.reject(e)
-                })
+                this.session.last_heartbeat = result.last_heartbeat
+                return deferred.resolve()
               } else {
+                logger.error('No session after result')
                 this.scheduler.stop()
-                return Promise.resolve()
+                return deferred.reject('No session after result')
               }
-              return deferred.promise as any as Promise<void>
-            },
-            (e) => {
-              logger.error(e)
+            } else {
+              logger.error('No heartbeat result')
+              this.scheduler.stop()
+              return deferred.reject('No heartbeat result')
             }
+          }).catch((e) => {
+            logger.error(e)
+            if (e.status_code === 401) { this.session = undefined }
+            this.scheduler.stop()
+            return deferred.reject(e)
+          })
+        } else {
+          this.scheduler.stop()
+          return Promise.resolve()
+        }
+        return deferred.promise as any as Promise<void>
+      },
+      (e) => {
+        logger.error(e)
+      }
     )
     this.heartbeatJob = new SimpleIntervalJob({ seconds: 30 }, this.heartbeatTask)
     this.scheduler.addSimpleIntervalJob(this.heartbeatJob)
