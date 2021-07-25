@@ -13,13 +13,15 @@
   },
   "private": true,
   "scripts": {
-    "start": "node build/app.js",
-    "build": "tsc",
+    "start": "npm run build && node build/app.js",
+    "build": "npm run clean && tsc && npm run copy-files",
     "start:dev": "env-cmd -e dev ts-node app.ts",
     "lint": "ts-standard --fix",
+    "copy-files": "copyfiles -E **/*.graphql build/",
+    "clean": "rimraf build/",
     "publish:dev": "env-cmd -e dev -x --use-shell \"rover graph introspect http://localhost:\\$PORT | rover subgraph publish \\$APOLLO_SDL_NAME --name kards-public-stats --routing-url http://localhost:\\$PORT --convert --schema -\"",
     "generate": "graphql-codegen --config ./graphql-codegen.yml",
-    "test": "tsc && nyc --reporter=html --reporter=text --all jest"
+    "test": "npm run build && nyc --reporter=html --reporter=text --all jest"
   },
   "ts-standard": {
     "ignore": [
@@ -30,6 +32,7 @@
     "@graphql-tools/schema": "^7.1.5",
     "@kards-stats/kards-tools": "^0.2.0",
     "connect-timeout": "^1.9.0",
+    "copyfiles": "^2.4.1",
     "cors": "^2.8.5",
     "express": "^4.13.4",
     "express-graphql": "^0.12.0",
@@ -39,6 +42,7 @@
     "mongoose": "^5.12.3",
     "nocache": "^3.0.1",
     "q": "^1.5.1",
+    "rimraf": "^3.0.2",
     "ts-standard": "^10.0.0",
     "typescript": "^4.3.5",
     "underscore": "^1.13.1",
