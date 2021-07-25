@@ -26,6 +26,7 @@
     ]
   },
   "dependencies": {
+    "@kards-stats/kards-tools": "^0.2.0",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "express": "^4.13.4",

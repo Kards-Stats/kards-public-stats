@@ -1,25 +1,25 @@
 import { getPlayerByName, newPlayer } from '../../../models/player'
 import { getStatsById, putStats, RawStat } from '../../../models/stats'
-import { Session } from '../../../includes/session'
 import Q from 'q'
-import { getCurrentLogger } from '../../../includes/logger'
+import tools from '@kards-stats/kards-tools'
 import winston from 'winston'
-import { authenticatedPost, authenticatedRequest } from '../../../includes/kards-request'
 import { UpdateResult } from '../../../types/graphql'
+import SteamUserConnector from '../../../models/steam-user'
 import _ from 'underscore'
 
-const logger: winston.Logger = getCurrentLogger('graphql-r-stats-m')
+const logger: winston.Logger = tools.includes.getCurrentLogger('graphql-r-stats-m')
 
+const Session = tools.kards.KardsSession
 const waitTime = 10 * 60 * 1000
 
-const session = new Session('*')
+const session = new Session('*', SteamUserConnector)
 
 const hostname = `https://${process.env.kards_hostname ?? ''}`
 
 async function internalUpdateStats (playerId: number): Promise<void> {
   logger.silly('internalUpdateStats')
   const deferred = Q.defer()
-  authenticatedRequest('GET', `${hostname}/playerstats/${playerId}`, session).then((playerStats) => {
+  tools.kards.request.authenticatedRequest('GET', `${hostname}/playerstats/${playerId}`, session).then((playerStats) => {
     logger.debug('got internal stats')
     // logger.silly(playerStats)
     if (_.isString(playerStats)) {
@@ -77,7 +77,7 @@ export async function updateByPlayerName (_parent: any, { name, tag }: { name: s
   getPlayerByName(name, tag).then((player) => {
     if (player == null) {
       session.getPlayerID().then((playerId) => {
-        authenticatedPost(hostname + '/players/' + playerId + '/friends', JSON.stringify({
+        tools.kards.request.authenticatedPost(hostname + '/players/' + playerId + '/friends', JSON.stringify({
           friend_tag: tag,
           friend_name: name
         }), session).then((friendResult) => {

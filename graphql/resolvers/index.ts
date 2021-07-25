@@ -1,11 +1,11 @@
 import stats from './stats/index'
 import verify from './verify/index'
-import { getCurrentLogger } from '../../includes/logger'
+import tools from '@kards-stats/kards-tools'
 import winston from 'winston'
 import { GraphQLScalarType, Kind } from 'graphql'
 import _ from 'underscore'
 
-const logger: winston.Logger = getCurrentLogger('graphql-r-index')
+const logger: winston.Logger = tools.includes.getCurrentLogger('graphql-r-index')
 
 export default {
   StatsResult: {

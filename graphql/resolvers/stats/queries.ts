@@ -1,16 +1,16 @@
 import { getPlayerById, getPlayerByName, newPlayer } from '../../../models/player'
 import { getStatsById } from '../../../models/stats'
-import { Session } from '../../../includes/session'
 import Q from 'q'
-import { getCurrentLogger } from '../../../includes/logger'
+import tools from '@kards-stats/kards-tools'
 import winston from 'winston'
-import { authenticatedPost } from '../../../includes/kards-request'
 import { StatsResult } from '../../../types/graphql'
+import SteamUserConnector from '../../../models/steam-user'
 import _ from 'underscore'
 
-const logger: winston.Logger = getCurrentLogger('graphql-r-stats-q')
+const logger: winston.Logger = tools.includes.getCurrentLogger('graphql-r-stats-q')
 
-const session = new Session('*')
+const Session = tools.kards.KardsSession
+const session = new Session('*', SteamUserConnector)
 
 const hostname = `https://${process.env.kards_hostname ?? ''}`
 
@@ -70,7 +70,7 @@ export async function getByPlayerName (_parent: any, { name, tag }: { name: stri
     logger.silly(player)
     if (player == null) {
       session.getPlayerID().then((playerId) => {
-        authenticatedPost(hostname + '/players/' + playerId + '/friends', JSON.stringify({
+        tools.kards.request.authenticatedPost(hostname + '/players/' + playerId + '/friends', JSON.stringify({
           friend_tag: tag,
           friend_name: name
         }), session).then((friendResult) => {
