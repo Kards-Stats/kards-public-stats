@@ -13,9 +13,10 @@
   },
   "private": true,
   "scripts": {
-    "start": "npm run build && node build/app.js",
+    "start": "npm run build && env-cmd -e prod node build/app.js",
     "build": "npm run clean && tsc && npm run copy-files",
     "start:dev": "env-cmd -e dev ts-node app.ts",
+    "start:test": "npm run build && env-cmd -e dev node build/app.js",
     "lint": "ts-standard --fix",
     "copy-files": "copyfiles -E **/*.graphql build/",
     "clean": "rimraf build/",
@@ -30,7 +31,7 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "^7.1.5",
-    "@kards-stats/kards-tools": "^0.2.0",
+    "@kards-stats/kards-tools": "^0.3.2-alpha",
     "connect-timeout": "^1.9.0",
     "copyfiles": "^2.4.1",
     "cors": "^2.8.5",

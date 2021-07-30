@@ -1,16 +1,16 @@
 import Q from 'q'
-import tools from '@kards-stats/kards-tools'
+import { includes, kards } from '@kards-stats/kards-tools'
 import winston from 'winston'
 import { VerifyResult } from '../../../types/graphql'
 import jwt from 'jsonwebtoken'
 import _ from 'underscore'
 
-const logger: winston.Logger = tools.includes.getCurrentLogger('graphql-r-verify-q')
+const logger: winston.Logger = includes.logger.getCurrentLogger('graphql-r-verify-q')
 
 export async function verifyPlayer (_parent: any, { jti }: { jti: string }): Promise<VerifyResult> {
   logger.silly('verifyPlayer')
   const deferred = Q.defer()
-  tools.kards.request.kardsRequest('GET', {
+  kards.request.kardsRequest('GET', {
     Authorization: 'jti ' + jti,
     'Drift-Api-Key': process.env.kards_drift_api_key
   }, '/').then((result) => {

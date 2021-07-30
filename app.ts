@@ -1,6 +1,6 @@
 import express from 'express'
 import helmet from 'helmet'
-import tools from '@kards-stats/kards-tools'
+import { includes } from '@kards-stats/kards-tools'
 import winston from 'winston'
 import mongoose from 'mongoose'
 import noCache from 'nocache'
@@ -9,7 +9,7 @@ import schema from './graphql/index'
 import cors from 'cors'
 import timeout from 'connect-timeout'
 
-const logger: winston.Logger = tools.includes.getCurrentLogger('app')
+const logger: winston.Logger = includes.logger.getCurrentLogger('app')
 
 const app = express()
 

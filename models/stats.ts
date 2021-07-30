@@ -1,9 +1,9 @@
-import tools from '@kards-stats/kards-tools'
+import { includes } from '@kards-stats/kards-tools'
 import Q from 'q'
 import mongoose from 'mongoose'
 import winston from 'winston'
 
-const logger: winston.Logger = tools.includes.getCurrentLogger('models-steam-user')
+const logger: winston.Logger = includes.logger.getCurrentLogger('models-stats')
 
 const Schema = mongoose.Schema
 
