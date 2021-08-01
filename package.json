@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "^7.1.5",
-    "@kards-stats/kards-tools": "^0.3.2-alpha",
+    "@kards-stats/kards-tools": "^0.3.3-alpha",
     "connect-timeout": "^1.9.0",
     "copyfiles": "^2.4.1",
     "cors": "^2.8.5",

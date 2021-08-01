@@ -70,6 +70,7 @@ function getMongooseConfig (): string {
   var prefix = 'mongodb+srv://'
   if (process.env.mdb_prefix !== undefined) { prefix = process.env.mdb_prefix }
   const conString = `${prefix}${userString}${process.env.mdb_cluster_url ?? 'localhost'}/${process.env.mdb_database ?? ''}?retryWrites=true&w=majority&ssl=false`
+  // const conString = `${prefix}${userString}${process.env.mdb_cluster_url ?? 'localhost'}/${process.env.mdb_database ?? ''}?retryWrites=true&w=majority`
   logger.info(conString)
   return conString
   // return 'mongodb://192.168.0.18:27017/?readPreference=primary&appname=MongoDB%20Compass&ssl=false';
