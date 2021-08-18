@@ -1,0 +1,15 @@
+{
+    "apps": [
+      {
+        "name": "main",
+        "script": "./build/app.js",
+        "watch": [
+          "build"
+        ],
+        "ignore_watch": [
+          "node_modules",
+          "logs"
+        ]
+      }
+    ]
+  }
