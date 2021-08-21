@@ -15,13 +15,16 @@
   "scripts": {
     "start": "npm run build && pm2 start pm2.main.json",
     "start:prod": "env-cmd -e prod npm run start",
-    "start:test": "env-cmd -e dev npm run start",
-    "start:dev": "env-cmd -e dev ts-node app.js",
+    "start:test": "env-cmd -e test npm run start",
+    "start:dev": "env-cmd -e dev ts-node app.ts",
+    "stop": "pm2 stop pm2.main.json",
     "build": "npm run clean && tsc && npm run copy-files",
     "lint": "ts-standard --fix",
     "copy-files": "copyfiles -E **/*.graphql build/",
     "clean": "rimraf build/",
-    "publish:dev": "env-cmd -e dev -x --use-shell \"rover graph introspect http://localhost:\\$PORT | rover subgraph publish \\$APOLLO_SDL_NAME --name kards-public-stats --routing-url http://localhost:\\$PORT --convert --schema -\"",
+    "publish:test": "env-cmd -e test -x --use-shell \"rover graph introspect http://\\$HOSTNAME:\\$PORT | rover subgraph publish \\$APOLLO_SDL_NAME --name kards-public-stats --routing-url http://\\$HOSTNAME:\\$PORT --convert --schema -\"",
+    "publish:dev": "env-cmd -e dev -x --use-shell \"rover graph introspect http://\\$HOSTNAME:\\$PORT | rover subgraph publish \\$APOLLO_SDL_NAME --name kards-public-stats --routing-url http://\\$HOSTNAME:\\$PORT --convert --schema -\"",
+    "schema:test": "env-cmd -e test -x --use-shell \"rover graph introspect http://\\$HOSTNAME:\\$PORT\"",
     "generate": "graphql-codegen --config ./graphql-codegen.yml",
     "test": "npm run build && nyc --reporter=html --reporter=text --all jest"
   },
@@ -32,7 +35,7 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "^7.1.5",
-    "@kards-stats/kards-tools": "^0.3.3-alpha",
+    "@kards-stats/kards-tools": "^0.4.3-alpha",
     "connect-timeout": "^1.9.0",
     "copyfiles": "^2.4.1",
     "cors": "^2.8.5",

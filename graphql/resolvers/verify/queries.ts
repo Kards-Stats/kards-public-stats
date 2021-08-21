@@ -1,24 +1,46 @@
-import Q from 'q'
-import { includes, kards } from '@kards-stats/kards-tools'
-import winston from 'winston'
+import { includes } from '@kards-stats/kards-tools'
+import { Requester } from '@kards-stats/kards-tools/build/kards'
+import { Debugger } from '@kards-stats/kards-tools/build/includes'
 import { VerifyResult } from '../../../types/graphql'
 import jwt from 'jsonwebtoken'
-import _ from 'underscore'
 
-const logger: winston.Logger = includes.logger.getCurrentLogger('graphql-r-verify-q')
+const logger = includes.logger.getCurrentLogger('graphql-r-verify-q')
+
+const debugObj = new Debugger()
+debugObj.on('all', (args: any[]) => {
+  var level: string = args[-1]
+  args = args.pop()
+  switch (level) {
+    case 'silly':
+      logger.silly(args)
+      break
+    case 'debug':
+      logger.debug(args)
+      break
+    case 'info':
+      logger.info(args)
+      break
+    case 'warn':
+      logger.warn(args)
+      break
+    case 'error':
+      logger.error(args)
+      break
+    case 'fatal':
+      logger.error(args)
+      break
+  }
+})
+debugObj.level = debugObj.getLevelFromName('silly')
 
 export async function verifyPlayer (_parent: any, { jti }: { jti: string }): Promise<VerifyResult> {
   logger.silly('verifyPlayer')
-  const deferred = Q.defer()
-  kards.request.kardsRequest('GET', {
-    Authorization: 'jti ' + jti,
-    'Drift-Api-Key': process.env.kards_drift_api_key
-  }, '/').then((result) => {
+  try {
+    var result = await Requester.rawRequest('GET', '/', { Authorization: `jti ${jti}` }, undefined, debugObj)
     logger.silly('gotResult')
-    if (_.isString(result)) {
-      return deferred.resolve({ code: 500, message: 'Invalid Result' })
+    if (typeof result === 'string') {
+      return { code: 500, error: 'Invalid Result' }
     }
-    deferred.resolve(result)
     const token = jwt.sign({
       player_id: result.current_user.player_id,
       user_name: result.current_user.user_name
@@ -26,12 +48,11 @@ export async function verifyPlayer (_parent: any, { jti }: { jti: string }): Pro
       expiresIn: '1h',
       algorithm: 'HS256'
     })
-    return deferred.resolve({
+    return {
       token: token
-    })
-  }).catch((e) => {
+    }
+  } catch (e) {
     logger.error(e)
-    return deferred.resolve({ code: 500, message: 'Not Authenticated' })
-  })
-  return deferred.promise as any as Promise<VerifyResult>
+    return { code: 500, error: 'Not Authenticated' }
+  }
 }
